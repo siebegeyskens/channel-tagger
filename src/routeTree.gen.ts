@@ -10,18 +10,19 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as TabsRouteImport } from './routes/_tabs'
+import { Route as AppRouteImport } from './routes/_app'
 import { Route as SettingsRouteImport } from './routes/settings'
-import { Route as TabsChannelsIndexRouteImport } from './routes/_tabs/channels.index'
-import { Route as TabsTagsIndexRouteImport } from './routes/_tabs/tags.index'
+import { Route as TagsIndexRouteImport } from './routes/tags.index'
+import { Route as AppChannelsIndexRouteImport } from './routes/_app/channels.index'
+import { Route as AppFeedIndexRouteImport } from './routes/_app/feed.index'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TabsRoute = TabsRouteImport.update({
-  id: '/_tabs',
+const AppRoute = AppRouteImport.update({
+  id: '/_app',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SettingsRoute = SettingsRouteImport.update({
@@ -29,55 +30,65 @@ const SettingsRoute = SettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TabsChannelsIndexRoute = TabsChannelsIndexRouteImport.update({
-  id: '/channels/',
-  path: '/channels/',
-  getParentRoute: () => TabsRoute,
-} as any)
-const TabsTagsIndexRoute = TabsTagsIndexRouteImport.update({
+const TagsIndexRoute = TagsIndexRouteImport.update({
   id: '/tags/',
   path: '/tags/',
-  getParentRoute: () => TabsRoute,
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppChannelsIndexRoute = AppChannelsIndexRouteImport.update({
+  id: '/channels/',
+  path: '/channels/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppFeedIndexRoute = AppFeedIndexRouteImport.update({
+  id: '/feed/',
+  path: '/feed/',
+  getParentRoute: () => AppRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/settings': typeof SettingsRoute
-  '/channels/': typeof TabsChannelsIndexRoute
-  '/tags/': typeof TabsTagsIndexRoute
+  '/tags/': typeof TagsIndexRoute
+  '/channels/': typeof AppChannelsIndexRoute
+  '/feed/': typeof AppFeedIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/settings': typeof SettingsRoute
-  '/channels': typeof TabsChannelsIndexRoute
-  '/tags': typeof TabsTagsIndexRoute
+  '/tags': typeof TagsIndexRoute
+  '/channels': typeof AppChannelsIndexRoute
+  '/feed': typeof AppFeedIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/_tabs': typeof TabsRouteWithChildren
+  '/_app': typeof AppRouteWithChildren
   '/settings': typeof SettingsRoute
-  '/_tabs/channels/': typeof TabsChannelsIndexRoute
-  '/_tabs/tags/': typeof TabsTagsIndexRoute
+  '/tags/': typeof TagsIndexRoute
+  '/_app/channels/': typeof AppChannelsIndexRoute
+  '/_app/feed/': typeof AppFeedIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/settings' | '/channels/' | '/tags/'
+  fullPaths: '/' | '/settings' | '/tags/' | '/channels/' | '/feed/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/settings' | '/channels' | '/tags'
+  to: '/' | '/settings' | '/tags' | '/channels' | '/feed'
   id:
     | '__root__'
     | '/'
-    | '/_tabs'
+    | '/_app'
     | '/settings'
-    | '/_tabs/channels/'
-    | '/_tabs/tags/'
+    | '/tags/'
+    | '/_app/channels/'
+    | '/_app/feed/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  TabsRoute: typeof TabsRouteWithChildren
+  AppRoute: typeof AppRouteWithChildren
   SettingsRoute: typeof SettingsRoute
+  TagsIndexRoute: typeof TagsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -89,11 +100,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_tabs': {
-      id: '/_tabs'
+    '/_app': {
+      id: '/_app'
       path: ''
       fullPath: '/'
-      preLoaderRoute: typeof TabsRouteImport
+      preLoaderRoute: typeof AppRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/settings': {
@@ -103,39 +114,47 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_tabs/channels/': {
-      id: '/_tabs/channels/'
-      path: '/channels'
-      fullPath: '/channels/'
-      preLoaderRoute: typeof TabsChannelsIndexRouteImport
-      parentRoute: typeof TabsRoute
-    }
-    '/_tabs/tags/': {
-      id: '/_tabs/tags/'
+    '/tags/': {
+      id: '/tags/'
       path: '/tags'
       fullPath: '/tags/'
-      preLoaderRoute: typeof TabsTagsIndexRouteImport
-      parentRoute: typeof TabsRoute
+      preLoaderRoute: typeof TagsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_app/channels/': {
+      id: '/_app/channels/'
+      path: '/channels'
+      fullPath: '/channels/'
+      preLoaderRoute: typeof AppChannelsIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/feed/': {
+      id: '/_app/feed/'
+      path: '/feed'
+      fullPath: '/feed/'
+      preLoaderRoute: typeof AppFeedIndexRouteImport
+      parentRoute: typeof AppRoute
     }
   }
 }
 
-interface TabsRouteChildren {
-  TabsChannelsIndexRoute: typeof TabsChannelsIndexRoute
-  TabsTagsIndexRoute: typeof TabsTagsIndexRoute
+interface AppRouteChildren {
+  AppChannelsIndexRoute: typeof AppChannelsIndexRoute
+  AppFeedIndexRoute: typeof AppFeedIndexRoute
 }
 
-const TabsRouteChildren: TabsRouteChildren = {
-  TabsChannelsIndexRoute: TabsChannelsIndexRoute,
-  TabsTagsIndexRoute: TabsTagsIndexRoute,
+const AppRouteChildren: AppRouteChildren = {
+  AppChannelsIndexRoute: AppChannelsIndexRoute,
+  AppFeedIndexRoute: AppFeedIndexRoute,
 }
 
-const TabsRouteWithChildren = TabsRoute._addFileChildren(TabsRouteChildren)
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  TabsRoute: TabsRouteWithChildren,
+  AppRoute: AppRouteWithChildren,
   SettingsRoute: SettingsRoute,
+  TagsIndexRoute: TagsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
