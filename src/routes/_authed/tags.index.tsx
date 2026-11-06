@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 
 import { SubPageHeader } from '@/components/layout/sub-page-header'
 
-export const Route = createFileRoute('/tags/')({ component: ManageTagsPage })
+export const Route = createFileRoute('/_authed/tags/')({ component: ManageTagsPage })
 
 function ManageTagsPage() {
   return (

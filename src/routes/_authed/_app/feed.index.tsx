@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { Rss } from 'lucide-react'
 
-export const Route = createFileRoute('/_app/feed/')({ component: FeedPage })
+export const Route = createFileRoute('/_authed/_app/feed/')({ component: FeedPage })
 
 function FeedPage() {
   return (

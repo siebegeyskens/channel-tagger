@@ -10,85 +10,126 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AppRouteImport } from './routes/_app'
-import { Route as SettingsRouteImport } from './routes/settings'
-import { Route as TagsIndexRouteImport } from './routes/tags.index'
-import { Route as AppChannelsIndexRouteImport } from './routes/_app/channels.index'
-import { Route as AppFeedIndexRouteImport } from './routes/_app/feed.index'
+import { Route as AuthedRouteImport } from './routes/_authed'
+import { Route as SignInRouteImport } from './routes/sign-in'
+import { Route as AuthedAppRouteImport } from './routes/_authed/_app'
+import { Route as AuthedSettingsRouteImport } from './routes/_authed/settings'
+import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
+import { Route as AuthedTagsIndexRouteImport } from './routes/_authed/tags.index'
+import { Route as AuthedAppChannelsIndexRouteImport } from './routes/_authed/_app/channels.index'
+import { Route as AuthedAppFeedIndexRouteImport } from './routes/_authed/_app/feed.index'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AppRoute = AppRouteImport.update({
-  id: '/_app',
+const AuthedRoute = AuthedRouteImport.update({
+  id: '/_authed',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SettingsRoute = SettingsRouteImport.update({
+const SignInRoute = SignInRouteImport.update({
+  id: '/sign-in',
+  path: '/sign-in',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthedAppRoute = AuthedAppRouteImport.update({
+  id: '/_app',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedSettingsRoute = AuthedSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthCallbackRoute = AuthCallbackRouteImport.update({
+  id: '/auth/callback',
+  path: '/auth/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TagsIndexRoute = TagsIndexRouteImport.update({
+const AuthedTagsIndexRoute = AuthedTagsIndexRouteImport.update({
   id: '/tags/',
   path: '/tags/',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthedRoute,
 } as any)
-const AppChannelsIndexRoute = AppChannelsIndexRouteImport.update({
+const AuthedAppChannelsIndexRoute = AuthedAppChannelsIndexRouteImport.update({
   id: '/channels/',
   path: '/channels/',
-  getParentRoute: () => AppRoute,
+  getParentRoute: () => AuthedAppRoute,
 } as any)
-const AppFeedIndexRoute = AppFeedIndexRouteImport.update({
+const AuthedAppFeedIndexRoute = AuthedAppFeedIndexRouteImport.update({
   id: '/feed/',
   path: '/feed/',
-  getParentRoute: () => AppRoute,
+  getParentRoute: () => AuthedAppRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/settings': typeof SettingsRoute
-  '/tags/': typeof TagsIndexRoute
-  '/channels/': typeof AppChannelsIndexRoute
-  '/feed/': typeof AppFeedIndexRoute
+  '/sign-in': typeof SignInRoute
+  '/settings': typeof AuthedSettingsRoute
+  '/auth/callback': typeof AuthCallbackRoute
+  '/tags/': typeof AuthedTagsIndexRoute
+  '/channels/': typeof AuthedAppChannelsIndexRoute
+  '/feed/': typeof AuthedAppFeedIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/settings': typeof SettingsRoute
-  '/tags': typeof TagsIndexRoute
-  '/channels': typeof AppChannelsIndexRoute
-  '/feed': typeof AppFeedIndexRoute
+  '/sign-in': typeof SignInRoute
+  '/settings': typeof AuthedSettingsRoute
+  '/auth/callback': typeof AuthCallbackRoute
+  '/tags': typeof AuthedTagsIndexRoute
+  '/channels': typeof AuthedAppChannelsIndexRoute
+  '/feed': typeof AuthedAppFeedIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/_app': typeof AppRouteWithChildren
-  '/settings': typeof SettingsRoute
-  '/tags/': typeof TagsIndexRoute
-  '/_app/channels/': typeof AppChannelsIndexRoute
-  '/_app/feed/': typeof AppFeedIndexRoute
+  '/_authed': typeof AuthedRouteWithChildren
+  '/sign-in': typeof SignInRoute
+  '/_authed/_app': typeof AuthedAppRouteWithChildren
+  '/_authed/settings': typeof AuthedSettingsRoute
+  '/auth/callback': typeof AuthCallbackRoute
+  '/_authed/tags/': typeof AuthedTagsIndexRoute
+  '/_authed/_app/channels/': typeof AuthedAppChannelsIndexRoute
+  '/_authed/_app/feed/': typeof AuthedAppFeedIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/settings' | '/tags/' | '/channels/' | '/feed/'
+  fullPaths:
+    | '/'
+    | '/sign-in'
+    | '/settings'
+    | '/auth/callback'
+    | '/tags/'
+    | '/channels/'
+    | '/feed/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/settings' | '/tags' | '/channels' | '/feed'
+  to:
+    | '/'
+    | '/sign-in'
+    | '/settings'
+    | '/auth/callback'
+    | '/tags'
+    | '/channels'
+    | '/feed'
   id:
     | '__root__'
     | '/'
-    | '/_app'
-    | '/settings'
-    | '/tags/'
-    | '/_app/channels/'
-    | '/_app/feed/'
+    | '/_authed'
+    | '/sign-in'
+    | '/_authed/_app'
+    | '/_authed/settings'
+    | '/auth/callback'
+    | '/_authed/tags/'
+    | '/_authed/_app/channels/'
+    | '/_authed/_app/feed/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AppRoute: typeof AppRouteWithChildren
-  SettingsRoute: typeof SettingsRoute
-  TagsIndexRoute: typeof TagsIndexRoute
+  AuthedRoute: typeof AuthedRouteWithChildren
+  SignInRoute: typeof SignInRoute
+  AuthCallbackRoute: typeof AuthCallbackRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -100,61 +141,99 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_app': {
-      id: '/_app'
+    '/_authed': {
+      id: '/_authed'
       path: ''
       fullPath: '/'
-      preLoaderRoute: typeof AppRouteImport
+      preLoaderRoute: typeof AuthedRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/settings': {
-      id: '/settings'
+    '/sign-in': {
+      id: '/sign-in'
+      path: '/sign-in'
+      fullPath: '/sign-in'
+      preLoaderRoute: typeof SignInRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authed/_app': {
+      id: '/_authed/_app'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthedAppRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/settings': {
+      id: '/_authed/settings'
       path: '/settings'
       fullPath: '/settings'
-      preLoaderRoute: typeof SettingsRouteImport
+      preLoaderRoute: typeof AuthedSettingsRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/auth/callback': {
+      id: '/auth/callback'
+      path: '/auth/callback'
+      fullPath: '/auth/callback'
+      preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/tags/': {
-      id: '/tags/'
+    '/_authed/tags/': {
+      id: '/_authed/tags/'
       path: '/tags'
       fullPath: '/tags/'
-      preLoaderRoute: typeof TagsIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthedTagsIndexRouteImport
+      parentRoute: typeof AuthedRoute
     }
-    '/_app/channels/': {
-      id: '/_app/channels/'
+    '/_authed/_app/channels/': {
+      id: '/_authed/_app/channels/'
       path: '/channels'
       fullPath: '/channels/'
-      preLoaderRoute: typeof AppChannelsIndexRouteImport
-      parentRoute: typeof AppRoute
+      preLoaderRoute: typeof AuthedAppChannelsIndexRouteImport
+      parentRoute: typeof AuthedAppRoute
     }
-    '/_app/feed/': {
-      id: '/_app/feed/'
+    '/_authed/_app/feed/': {
+      id: '/_authed/_app/feed/'
       path: '/feed'
       fullPath: '/feed/'
-      preLoaderRoute: typeof AppFeedIndexRouteImport
-      parentRoute: typeof AppRoute
+      preLoaderRoute: typeof AuthedAppFeedIndexRouteImport
+      parentRoute: typeof AuthedAppRoute
     }
   }
 }
 
-interface AppRouteChildren {
-  AppChannelsIndexRoute: typeof AppChannelsIndexRoute
-  AppFeedIndexRoute: typeof AppFeedIndexRoute
+interface AuthedAppRouteChildren {
+  AuthedAppChannelsIndexRoute: typeof AuthedAppChannelsIndexRoute
+  AuthedAppFeedIndexRoute: typeof AuthedAppFeedIndexRoute
 }
 
-const AppRouteChildren: AppRouteChildren = {
-  AppChannelsIndexRoute: AppChannelsIndexRoute,
-  AppFeedIndexRoute: AppFeedIndexRoute,
+const AuthedAppRouteChildren: AuthedAppRouteChildren = {
+  AuthedAppChannelsIndexRoute: AuthedAppChannelsIndexRoute,
+  AuthedAppFeedIndexRoute: AuthedAppFeedIndexRoute,
 }
 
-const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+const AuthedAppRouteWithChildren = AuthedAppRoute._addFileChildren(
+  AuthedAppRouteChildren,
+)
+
+interface AuthedRouteChildren {
+  AuthedAppRoute: typeof AuthedAppRouteWithChildren
+  AuthedSettingsRoute: typeof AuthedSettingsRoute
+  AuthedTagsIndexRoute: typeof AuthedTagsIndexRoute
+}
+
+const AuthedRouteChildren: AuthedRouteChildren = {
+  AuthedAppRoute: AuthedAppRouteWithChildren,
+  AuthedSettingsRoute: AuthedSettingsRoute,
+  AuthedTagsIndexRoute: AuthedTagsIndexRoute,
+}
+
+const AuthedRouteWithChildren =
+  AuthedRoute._addFileChildren(AuthedRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AppRoute: AppRouteWithChildren,
-  SettingsRoute: SettingsRoute,
-  TagsIndexRoute: TagsIndexRoute,
+  AuthedRoute: AuthedRouteWithChildren,
+  SignInRoute: SignInRoute,
+  AuthCallbackRoute: AuthCallbackRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

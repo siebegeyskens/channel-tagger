@@ -3,7 +3,7 @@ import { Outlet, createFileRoute } from '@tanstack/react-router'
 import { AccountMenu } from '@/components/layout/account-menu'
 import { SectionToggle } from '@/components/layout/section-toggle'
 
-export const Route = createFileRoute('/_app')({ component: AppLayout })
+export const Route = createFileRoute('/_authed/_app')({ component: AppLayout })
 
 function AppLayout() {
   return (

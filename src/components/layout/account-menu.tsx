@@ -1,7 +1,8 @@
-import { Link } from '@tanstack/react-router'
+import { useQueryClient } from '@tanstack/react-query'
+import { Link, useNavigate, useRouteContext } from '@tanstack/react-router'
 import { LogOut, Settings, Settings2, User } from 'lucide-react'
 
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,8 +10,20 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { supabase } from '@/lib/supabase/client'
 
 export function AccountMenu() {
+  const { user } = useRouteContext({ from: '/_authed' })
+  const queryClient = useQueryClient()
+  const navigate = useNavigate()
+  const avatarUrl = user.user_metadata.avatar_url as string | undefined
+
+  async function signOut() {
+    await supabase.auth.signOut()
+    queryClient.clear()
+    await navigate({ to: '/sign-in' })
+  }
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -20,6 +33,7 @@ export function AccountMenu() {
           className="rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <Avatar className="size-9">
+            {avatarUrl && <AvatarImage src={avatarUrl} alt="" referrerPolicy="no-referrer" />}
             <AvatarFallback className="bg-secondary">
               <User className="size-4" />
             </AvatarFallback>
@@ -40,7 +54,7 @@ export function AccountMenu() {
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem disabled>
+        <DropdownMenuItem onSelect={signOut}>
           <LogOut />
           Sign out
         </DropdownMenuItem>

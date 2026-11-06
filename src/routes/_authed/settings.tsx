@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 
 import { SubPageHeader } from '@/components/layout/sub-page-header'
 
-export const Route = createFileRoute('/settings')({ component: SettingsPage })
+export const Route = createFileRoute('/_authed/settings')({ component: SettingsPage })
 
 function SettingsPage() {
   return (
