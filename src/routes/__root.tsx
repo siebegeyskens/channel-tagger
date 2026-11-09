@@ -3,6 +3,8 @@ import type { QueryClient } from '@tanstack/react-query'
 import { HeadContent, Scripts, createRootRouteWithContext } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 
+import { Toaster } from '@/components/ui/sonner'
+
 import appCss from '../styles.css?url'
 
 export interface RouterContext {
@@ -33,6 +35,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         {children}
+        <Toaster position="top-center" />
         <TanStackDevtools
           config={{ position: 'bottom-left' }}
           plugins={[

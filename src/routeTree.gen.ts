@@ -16,6 +16,8 @@ import { Route as AuthedAppRouteImport } from './routes/_authed/_app'
 import { Route as AuthedSettingsRouteImport } from './routes/_authed/settings'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as AuthedTagsIndexRouteImport } from './routes/_authed/tags.index'
+import { Route as AuthedTagsTagIdRouteImport } from './routes/_authed/tags.$tagId'
+import { Route as AuthedTagsNewRouteImport } from './routes/_authed/tags.new'
 import { Route as AuthedAppChannelsIndexRouteImport } from './routes/_authed/_app/channels.index'
 import { Route as AuthedAppFeedIndexRouteImport } from './routes/_authed/_app/feed.index'
 
@@ -52,6 +54,16 @@ const AuthedTagsIndexRoute = AuthedTagsIndexRouteImport.update({
   path: '/tags/',
   getParentRoute: () => AuthedRoute,
 } as any)
+const AuthedTagsTagIdRoute = AuthedTagsTagIdRouteImport.update({
+  id: '/tags/$tagId',
+  path: '/tags/$tagId',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedTagsNewRoute = AuthedTagsNewRouteImport.update({
+  id: '/tags/new',
+  path: '/tags/new',
+  getParentRoute: () => AuthedRoute,
+} as any)
 const AuthedAppChannelsIndexRoute = AuthedAppChannelsIndexRouteImport.update({
   id: '/channels/',
   path: '/channels/',
@@ -68,6 +80,8 @@ export interface FileRoutesByFullPath {
   '/sign-in': typeof SignInRoute
   '/settings': typeof AuthedSettingsRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/tags/$tagId': typeof AuthedTagsTagIdRoute
+  '/tags/new': typeof AuthedTagsNewRoute
   '/tags/': typeof AuthedTagsIndexRoute
   '/channels/': typeof AuthedAppChannelsIndexRoute
   '/feed/': typeof AuthedAppFeedIndexRoute
@@ -77,6 +91,8 @@ export interface FileRoutesByTo {
   '/sign-in': typeof SignInRoute
   '/settings': typeof AuthedSettingsRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/tags/$tagId': typeof AuthedTagsTagIdRoute
+  '/tags/new': typeof AuthedTagsNewRoute
   '/tags': typeof AuthedTagsIndexRoute
   '/channels': typeof AuthedAppChannelsIndexRoute
   '/feed': typeof AuthedAppFeedIndexRoute
@@ -89,6 +105,8 @@ export interface FileRoutesById {
   '/_authed/_app': typeof AuthedAppRouteWithChildren
   '/_authed/settings': typeof AuthedSettingsRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/_authed/tags/$tagId': typeof AuthedTagsTagIdRoute
+  '/_authed/tags/new': typeof AuthedTagsNewRoute
   '/_authed/tags/': typeof AuthedTagsIndexRoute
   '/_authed/_app/channels/': typeof AuthedAppChannelsIndexRoute
   '/_authed/_app/feed/': typeof AuthedAppFeedIndexRoute
@@ -100,6 +118,8 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/settings'
     | '/auth/callback'
+    | '/tags/$tagId'
+    | '/tags/new'
     | '/tags/'
     | '/channels/'
     | '/feed/'
@@ -109,6 +129,8 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/settings'
     | '/auth/callback'
+    | '/tags/$tagId'
+    | '/tags/new'
     | '/tags'
     | '/channels'
     | '/feed'
@@ -120,6 +142,8 @@ export interface FileRouteTypes {
     | '/_authed/_app'
     | '/_authed/settings'
     | '/auth/callback'
+    | '/_authed/tags/$tagId'
+    | '/_authed/tags/new'
     | '/_authed/tags/'
     | '/_authed/_app/channels/'
     | '/_authed/_app/feed/'
@@ -183,6 +207,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedTagsIndexRouteImport
       parentRoute: typeof AuthedRoute
     }
+    '/_authed/tags/$tagId': {
+      id: '/_authed/tags/$tagId'
+      path: '/tags/$tagId'
+      fullPath: '/tags/$tagId'
+      preLoaderRoute: typeof AuthedTagsTagIdRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/tags/new': {
+      id: '/_authed/tags/new'
+      path: '/tags/new'
+      fullPath: '/tags/new'
+      preLoaderRoute: typeof AuthedTagsNewRouteImport
+      parentRoute: typeof AuthedRoute
+    }
     '/_authed/_app/channels/': {
       id: '/_authed/_app/channels/'
       path: '/channels'
@@ -217,12 +255,16 @@ const AuthedAppRouteWithChildren = AuthedAppRoute._addFileChildren(
 interface AuthedRouteChildren {
   AuthedAppRoute: typeof AuthedAppRouteWithChildren
   AuthedSettingsRoute: typeof AuthedSettingsRoute
+  AuthedTagsTagIdRoute: typeof AuthedTagsTagIdRoute
+  AuthedTagsNewRoute: typeof AuthedTagsNewRoute
   AuthedTagsIndexRoute: typeof AuthedTagsIndexRoute
 }
 
 const AuthedRouteChildren: AuthedRouteChildren = {
   AuthedAppRoute: AuthedAppRouteWithChildren,
   AuthedSettingsRoute: AuthedSettingsRoute,
+  AuthedTagsTagIdRoute: AuthedTagsTagIdRoute,
+  AuthedTagsNewRoute: AuthedTagsNewRoute,
   AuthedTagsIndexRoute: AuthedTagsIndexRoute,
 }
 

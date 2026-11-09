@@ -3,22 +3,19 @@ import { createFileRoute } from '@tanstack/react-router'
 import { ExternalLink } from 'lucide-react'
 import { useMemo } from 'react'
 
+import { Message } from '@/components/message'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { isReauthError, signInWithGoogle } from '@/lib/auth'
 import { channelsQueryOptions, youtubeChannelUrl, type Channel } from '@/lib/channels'
+import { compareText } from '@/lib/compare'
 
 export const Route = createFileRoute('/_authed/_app/channels/')({ component: ChannelsPage })
 
-const collator = new Intl.Collator(undefined, { sensitivity: 'base', numeric: true })
-
 function ChannelsPage() {
   const { data, error, isPending, refetch, isRefetching } = useQuery(channelsQueryOptions)
-  const channels = useMemo(
-    () => data?.toSorted((a, b) => collator.compare(a.title, b.title)),
-    [data],
-  )
+  const channels = useMemo(() => data?.toSorted((a, b) => compareText(a.title, b.title)), [data])
 
   if (isPending) return <ChannelListSkeleton />
 
@@ -91,14 +88,5 @@ function ChannelListSkeleton() {
         </li>
       ))}
     </ul>
-  )
-}
-
-function Message({ text, children }: { text: string; children?: React.ReactNode }) {
-  return (
-    <div className="flex flex-col items-center gap-4 px-6 pt-16 text-center">
-      <p className="text-muted-foreground">{text}</p>
-      {children}
-    </div>
   )
 }
