@@ -15,6 +15,7 @@ import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as AuthedAppRouteImport } from './routes/_authed/_app'
 import { Route as AuthedSettingsRouteImport } from './routes/_authed/settings'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
+import { Route as AuthedChannelsChannelIdRouteImport } from './routes/_authed/channels.$channelId'
 import { Route as AuthedTagsIndexRouteImport } from './routes/_authed/tags.index'
 import { Route as AuthedTagsTagIdRouteImport } from './routes/_authed/tags.$tagId'
 import { Route as AuthedTagsNewRouteImport } from './routes/_authed/tags.new'
@@ -49,6 +50,11 @@ const AuthCallbackRoute = AuthCallbackRouteImport.update({
   path: '/auth/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthedChannelsChannelIdRoute = AuthedChannelsChannelIdRouteImport.update({
+  id: '/channels/$channelId',
+  path: '/channels/$channelId',
+  getParentRoute: () => AuthedRoute,
+} as any)
 const AuthedTagsIndexRoute = AuthedTagsIndexRouteImport.update({
   id: '/tags/',
   path: '/tags/',
@@ -80,6 +86,7 @@ export interface FileRoutesByFullPath {
   '/sign-in': typeof SignInRoute
   '/settings': typeof AuthedSettingsRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/channels/$channelId': typeof AuthedChannelsChannelIdRoute
   '/tags/$tagId': typeof AuthedTagsTagIdRoute
   '/tags/new': typeof AuthedTagsNewRoute
   '/tags/': typeof AuthedTagsIndexRoute
@@ -91,6 +98,7 @@ export interface FileRoutesByTo {
   '/sign-in': typeof SignInRoute
   '/settings': typeof AuthedSettingsRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/channels/$channelId': typeof AuthedChannelsChannelIdRoute
   '/tags/$tagId': typeof AuthedTagsTagIdRoute
   '/tags/new': typeof AuthedTagsNewRoute
   '/tags': typeof AuthedTagsIndexRoute
@@ -105,6 +113,7 @@ export interface FileRoutesById {
   '/_authed/_app': typeof AuthedAppRouteWithChildren
   '/_authed/settings': typeof AuthedSettingsRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/_authed/channels/$channelId': typeof AuthedChannelsChannelIdRoute
   '/_authed/tags/$tagId': typeof AuthedTagsTagIdRoute
   '/_authed/tags/new': typeof AuthedTagsNewRoute
   '/_authed/tags/': typeof AuthedTagsIndexRoute
@@ -118,6 +127,7 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/settings'
     | '/auth/callback'
+    | '/channels/$channelId'
     | '/tags/$tagId'
     | '/tags/new'
     | '/tags/'
@@ -129,6 +139,7 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/settings'
     | '/auth/callback'
+    | '/channels/$channelId'
     | '/tags/$tagId'
     | '/tags/new'
     | '/tags'
@@ -142,6 +153,7 @@ export interface FileRouteTypes {
     | '/_authed/_app'
     | '/_authed/settings'
     | '/auth/callback'
+    | '/_authed/channels/$channelId'
     | '/_authed/tags/$tagId'
     | '/_authed/tags/new'
     | '/_authed/tags/'
@@ -200,6 +212,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authed/channels/$channelId': {
+      id: '/_authed/channels/$channelId'
+      path: '/channels/$channelId'
+      fullPath: '/channels/$channelId'
+      preLoaderRoute: typeof AuthedChannelsChannelIdRouteImport
+      parentRoute: typeof AuthedRoute
+    }
     '/_authed/tags/': {
       id: '/_authed/tags/'
       path: '/tags'
@@ -255,6 +274,7 @@ const AuthedAppRouteWithChildren = AuthedAppRoute._addFileChildren(
 interface AuthedRouteChildren {
   AuthedAppRoute: typeof AuthedAppRouteWithChildren
   AuthedSettingsRoute: typeof AuthedSettingsRoute
+  AuthedChannelsChannelIdRoute: typeof AuthedChannelsChannelIdRoute
   AuthedTagsTagIdRoute: typeof AuthedTagsTagIdRoute
   AuthedTagsNewRoute: typeof AuthedTagsNewRoute
   AuthedTagsIndexRoute: typeof AuthedTagsIndexRoute
@@ -263,6 +283,7 @@ interface AuthedRouteChildren {
 const AuthedRouteChildren: AuthedRouteChildren = {
   AuthedAppRoute: AuthedAppRouteWithChildren,
   AuthedSettingsRoute: AuthedSettingsRoute,
+  AuthedChannelsChannelIdRoute: AuthedChannelsChannelIdRoute,
   AuthedTagsTagIdRoute: AuthedTagsTagIdRoute,
   AuthedTagsNewRoute: AuthedTagsNewRoute,
   AuthedTagsIndexRoute: AuthedTagsIndexRoute,

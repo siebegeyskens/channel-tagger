@@ -1,5 +1,6 @@
 import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useMemo } from 'react'
+import { toast } from 'sonner'
 
 import { channelsQueryOptions, type Channel } from '@/lib/channels'
 import { compareText } from '@/lib/compare'
@@ -19,6 +20,17 @@ export interface ChannelTag {
 export interface TagInput {
   name: string
   color: string
+}
+
+export interface TagsData {
+  tags: Tag[]
+  channelTags: ChannelTag[]
+}
+
+export interface ChannelTagsChange {
+  channelIds: string[]
+  addTagIds: string[]
+  removeTagIds: string[]
 }
 
 const PAGE_SIZE = 1000
@@ -50,7 +62,7 @@ async function fetchChannelTags() {
 
 export const tagsQueryOptions = queryOptions({
   queryKey: ['tags'],
-  queryFn: async () => {
+  queryFn: async (): Promise<TagsData> => {
     const [tags, channelTags] = await Promise.all([fetchTags(), fetchChannelTags()])
     return { tags, channelTags }
   },
@@ -83,9 +95,80 @@ export function useChannelsByTag() {
   )
 }
 
+export function groupTagsByChannel({ tags, channelTags }: TagsData) {
+  const tagsById = new Map(tags.map((tag) => [tag.id, tag]))
+  const byChannel = new Map<string, Tag[]>()
+  for (const { channel_id, tag_id } of channelTags) {
+    const tag = tagsById.get(tag_id)
+    if (!tag) continue
+    const list = byChannel.get(channel_id)
+    if (list) list.push(tag)
+    else byChannel.set(channel_id, [tag])
+  }
+  for (const list of byChannel.values()) list.sort((a, b) => compareText(a.name, b.name))
+  return byChannel
+}
+
+export function useTagsByChannel() {
+  const { data } = useQuery(tagsQueryOptions)
+  return useMemo(() => (data ? groupTagsByChannel(data) : undefined), [data])
+}
+
+function applyChannelTagsChange(data: TagsData, change: ChannelTagsChange): TagsData {
+  const channelIds = new Set(change.channelIds)
+  const removeTagIds = new Set(change.removeTagIds)
+  const kept = data.channelTags.filter(
+    (row) => !(channelIds.has(row.channel_id) && removeTagIds.has(row.tag_id)),
+  )
+  const existing = new Set(kept.map((row) => `${row.channel_id}:${row.tag_id}`))
+  const added = change.channelIds.flatMap((channel_id) =>
+    change.addTagIds
+      .filter((tag_id) => !existing.has(`${channel_id}:${tag_id}`))
+      .map((tag_id) => ({ channel_id, tag_id })),
+  )
+  return { ...data, channelTags: [...kept, ...added] }
+}
+
+export function useUpdateChannelTags() {
+  const queryClient = useQueryClient()
+  const queryKey = tagsQueryOptions.queryKey
+  return useMutation({
+    mutationFn: async ({ channelIds, addTagIds, removeTagIds }: ChannelTagsChange) => {
+      const rows = channelIds.flatMap((channel_id) =>
+        addTagIds.map((tag_id) => ({ channel_id, tag_id })),
+      )
+      const [added, removed] = await Promise.all([
+        rows.length
+          ? supabase.from('channel_tags').upsert(rows, { ignoreDuplicates: true })
+          : undefined,
+        channelIds.length && removeTagIds.length
+          ? supabase
+              .from('channel_tags')
+              .delete()
+              .in('channel_id', channelIds)
+              .in('tag_id', removeTagIds)
+          : undefined,
+      ])
+      if (added?.error) throw added.error
+      if (removed?.error) throw removed.error
+    },
+    onMutate: async (change) => {
+      await queryClient.cancelQueries({ queryKey })
+      const previous = queryClient.getQueryData(queryKey)
+      queryClient.setQueryData(queryKey, (data) => data && applyChannelTagsChange(data, change))
+      return { previous }
+    },
+    onError: (_error, _change, context) => {
+      if (context?.previous) queryClient.setQueryData(queryKey, context.previous)
+      toast.error("Couldn't update the tags. Please try again.")
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey }),
+  })
+}
+
 function useSetTagsData() {
   const queryClient = useQueryClient()
-  return (update: (data: { tags: Tag[]; channelTags: ChannelTag[] }) => typeof data) =>
+  return (update: (data: TagsData) => TagsData) =>
     queryClient.setQueryData(tagsQueryOptions.queryKey, (data) => data && update(data))
 }
 

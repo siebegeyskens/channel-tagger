@@ -13,20 +13,13 @@ import { cn } from '@/lib/utils'
 
 const TAG_NAME_MAX_LENGTH = 30
 
-export function TagForm({
-  defaultValues,
-  otherTagNames,
-  onSubmit,
-  children,
-}: {
+interface TagFormOptions {
   defaultValues: TagInput
   otherTagNames: string[]
   onSubmit: (values: TagInput) => Promise<unknown>
-  children?: React.ReactNode
-}) {
-  const nameId = useId()
-  const errorId = useId()
-  const colorId = useId()
+}
+
+export function useTagForm({ defaultValues, otherTagNames, onSubmit }: TagFormOptions) {
   const [name, setName] = useState(defaultValues.name)
   const [color, setColor] = useState(defaultValues.color)
   const [rejectedNames, setRejectedNames] = useState<string[]>([])
@@ -53,43 +46,60 @@ export function TagForm({
     }
   }
 
+  return { name, setName, color, setColor, trimmed, isDuplicate, canSave, submitting, handleSubmit }
+}
+
+export function TagFields({ form }: { form: ReturnType<typeof useTagForm> }) {
+  const nameId = useId()
+  const errorId = useId()
+  const colorId = useId()
+
   return (
-    <form onSubmit={handleSubmit} className="flex flex-1 flex-col">
+    <>
+      <div className="flex min-h-10 items-center justify-center rounded-lg border border-dashed p-4">
+        <TagChip name={form.trimmed || 'Tag name'} color={form.color} />
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <Label htmlFor={nameId}>Name</Label>
+        <Input
+          id={nameId}
+          value={form.name}
+          onChange={(event) => form.setName(event.target.value)}
+          maxLength={TAG_NAME_MAX_LENGTH}
+          autoComplete="off"
+          required
+          aria-invalid={form.isDuplicate || undefined}
+          aria-describedby={form.isDuplicate ? errorId : undefined}
+        />
+        {form.isDuplicate && (
+          <p id={errorId} className="text-sm text-destructive">
+            You already have a tag with this name.
+          </p>
+        )}
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <Label htmlFor={colorId}>Color</Label>
+        <ColorPicker id={colorId} value={form.color} onChange={form.setColor} />
+      </div>
+    </>
+  )
+}
+
+export function TagForm({ children, ...options }: TagFormOptions & { children?: React.ReactNode }) {
+  const form = useTagForm(options)
+
+  return (
+    <form onSubmit={form.handleSubmit} className="flex flex-1 flex-col">
       <div className="flex flex-col gap-6 px-4 pt-2">
-        <div className="flex min-h-10 items-center justify-center rounded-lg border border-dashed p-4">
-          <TagChip name={trimmed || 'Tag name'} color={color} />
-        </div>
-
-        <div className="flex flex-col gap-2">
-          <Label htmlFor={nameId}>Name</Label>
-          <Input
-            id={nameId}
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            maxLength={TAG_NAME_MAX_LENGTH}
-            autoComplete="off"
-            required
-            aria-invalid={isDuplicate || undefined}
-            aria-describedby={isDuplicate ? errorId : undefined}
-          />
-          {isDuplicate && (
-            <p id={errorId} className="text-sm text-destructive">
-              You already have a tag with this name.
-            </p>
-          )}
-        </div>
-
-        <div className="flex flex-col gap-2">
-          <Label htmlFor={colorId}>Color</Label>
-          <ColorPicker id={colorId} value={color} onChange={setColor} />
-        </div>
-
+        <TagFields form={form} />
         {children}
       </div>
 
       <div className="sticky bottom-0 mt-auto bg-background p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
-        <Button type="submit" size="lg" className="w-full" disabled={!canSave}>
-          {submitting ? 'Saving…' : 'Save'}
+        <Button type="submit" size="lg" className="w-full" disabled={!form.canSave}>
+          {form.submitting ? 'Saving…' : 'Save'}
         </Button>
       </div>
     </form>
