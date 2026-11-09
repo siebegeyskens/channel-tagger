@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
-import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
-import { Trash2 } from 'lucide-react'
+import { Link, createFileRoute } from '@tanstack/react-router'
+import { ListFilter, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { SubPageHeader } from '@/components/layout/sub-page-header'
@@ -25,13 +25,14 @@ import {
   useUpdateTag,
   type Tag,
 } from '@/lib/tags'
+import { useGoBack } from '@/lib/use-go-back'
 
 export const Route = createFileRoute('/_authed/tags/$tagId')({ component: EditTagPage })
 
 function EditTagPage() {
   const { tagId } = Route.useParams()
   const { data, error, refetch, isRefetching } = useQuery(tagsQueryOptions)
-  const navigate = useNavigate()
+  const { goBack } = useGoBack('/tags')
   const updateTag = useUpdateTag()
   const deleteTag = useDeleteTag()
   const tag = data?.tags.find((candidate) => candidate.id === tagId)
@@ -63,9 +64,10 @@ function EditTagPage() {
         otherTagNames={data.tags.filter((other) => other.id !== tag.id).map((other) => other.name)}
         onSubmit={async (values) => {
           await updateTag.mutateAsync({ id: tag.id, ...values })
-          await navigate({ to: '/tags' })
+          goBack()
         }}
       >
+        <ViewChannelsButton tag={tag} />
         <DeleteTagButton
           tag={tag}
           pending={deleteTag.isPending}
@@ -73,7 +75,7 @@ function EditTagPage() {
             deleteTag.mutate(tag.id, {
               onSuccess: () => {
                 toast.success(`Deleted "${tag.name}"`)
-                void navigate({ to: '/tags' })
+                goBack()
               },
               onError: () => toast.error("Couldn't delete the tag. Please try again."),
             })
@@ -88,6 +90,23 @@ function EditTagPage() {
       <SubPageHeader title="Edit tag" backTo="/tags" />
       {content()}
     </main>
+  )
+}
+
+function ViewChannelsButton({ tag }: { tag: Tag }) {
+  const channelsByTag = useChannelsByTag()
+  const count = channelsByTag?.get(tag.id)?.length
+  if (count === 0) return null
+
+  return (
+    <Button type="button" variant="outline" className="self-start" asChild>
+      <Link to="/channels" search={{ tags: tag.id }}>
+        <ListFilter />
+        {count === undefined
+          ? 'View channels'
+          : `View ${count} ${count === 1 ? 'channel' : 'channels'}`}
+      </Link>
+    </Button>
   )
 }
 

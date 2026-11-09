@@ -1,9 +1,14 @@
-import { Outlet, createFileRoute } from '@tanstack/react-router'
+import { Outlet, createFileRoute, retainSearchParams } from '@tanstack/react-router'
 
 import { AccountMenu } from '@/components/layout/account-menu'
 import { SectionToggle } from '@/components/layout/section-toggle'
+import { validateChannelSearch } from '@/lib/channel-filters'
 
-export const Route = createFileRoute('/_authed/_app')({ component: AppLayout })
+export const Route = createFileRoute('/_authed/_app')({
+  validateSearch: validateChannelSearch,
+  search: { middlewares: [retainSearchParams(['sort', 'tags'])] },
+  component: AppLayout,
+})
 
 function AppLayout() {
   return (

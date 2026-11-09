@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { Link, createFileRoute, useBlocker, useNavigate } from '@tanstack/react-router'
+import { Link, createFileRoute, useBlocker } from '@tanstack/react-router'
 import { Plus } from 'lucide-react'
 import { useMemo, useRef, useState } from 'react'
 
@@ -20,8 +20,9 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { channelsQueryOptions, type Channel } from '@/lib/channels'
+import { channelsQueryOptions, youtubeChannelUrl, type Channel } from '@/lib/channels'
 import { tagsQueryOptions, useUpdateChannelTags, type Tag } from '@/lib/tags'
+import { useGoBack } from '@/lib/use-go-back'
 
 export const Route = createFileRoute('/_authed/channels/$channelId')({
   component: SelectTagsPage,
@@ -94,7 +95,7 @@ function SelectTagsForm({
   tags: Tag[]
   initialTagIds: string[]
 }) {
-  const navigate = useNavigate()
+  const { goBack } = useGoBack('/channels')
   const updateChannelTags = useUpdateChannelTags()
   const [selected, setSelected] = useState(() => new Set(initialTagIds))
   const [creating, setCreating] = useState(false)
@@ -122,13 +123,19 @@ function SelectTagsForm({
   function save() {
     saving.current = true
     updateChannelTags.mutate({ channelIds: [channel.channelId], addTagIds, removeTagIds })
-    void navigate({ to: '/channels' })
+    goBack()
   }
 
   return (
     <>
       <div className="flex flex-1 flex-col gap-8 px-4 pt-4">
-        <div className="flex flex-col items-center gap-3 text-center">
+        <a
+          href={youtubeChannelUrl(channel.channelId)}
+          target="_blank"
+          rel="noreferrer"
+          aria-label={`Open ${channel.title} on YouTube`}
+          className="flex flex-col items-center gap-3 self-center rounded-xl p-2 text-center outline-none hover:bg-accent/50 focus-visible:ring-3 focus-visible:ring-ring/50"
+        >
           <Avatar className="size-24">
             {channel.thumbnailUrl && (
               <AvatarImage src={channel.thumbnailUrl} alt="" referrerPolicy="no-referrer" />
@@ -143,7 +150,7 @@ function SelectTagsForm({
               <p className="truncate text-sm text-muted-foreground">{channel.handle}</p>
             )}
           </div>
-        </div>
+        </a>
 
         <div className="flex flex-col gap-3">
           {tags.length === 0 && (

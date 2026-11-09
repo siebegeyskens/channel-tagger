@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react'
 
 import { SubPageHeader } from '@/components/layout/sub-page-header'
@@ -8,6 +8,7 @@ import { TagForm } from '@/components/tag-form'
 import { Button } from '@/components/ui/button'
 import { pickTagColor } from '@/lib/tag-colors'
 import { tagsQueryOptions, useCreateTag, type Tag } from '@/lib/tags'
+import { useGoBack } from '@/lib/use-go-back'
 
 export const Route = createFileRoute('/_authed/tags/new')({ component: CreateTagPage })
 
@@ -31,7 +32,7 @@ function CreateTagPage() {
 }
 
 function CreateTagForm({ tags }: { tags: Tag[] }) {
-  const navigate = useNavigate()
+  const { goBack } = useGoBack('/tags')
   const createTag = useCreateTag()
   const [color] = useState(() => pickTagColor(tags.map((tag) => tag.color)))
 
@@ -41,7 +42,7 @@ function CreateTagForm({ tags }: { tags: Tag[] }) {
       otherTagNames={tags.map((tag) => tag.name)}
       onSubmit={async (values) => {
         await createTag.mutateAsync(values)
-        await navigate({ to: '/tags' })
+        goBack()
       }}
     />
   )

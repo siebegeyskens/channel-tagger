@@ -3,55 +3,118 @@ import { Link, createFileRoute } from '@tanstack/react-router'
 import { Tags as TagsIcon } from 'lucide-react'
 import { useMemo } from 'react'
 
+import { FilterRow } from '@/components/channels/filter-row'
 import { Message } from '@/components/message'
-import { TagChip } from '@/components/tag-chip'
+import { TagChipList } from '@/components/tag-chip-list'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { isReauthError, signInWithGoogle } from '@/lib/auth'
+import { UNTAGGED, matchesTagFilter, parseTagFilter } from '@/lib/channel-filters'
 import { channelsQueryOptions, youtubeChannelUrl, type Channel } from '@/lib/channels'
 import { compareText } from '@/lib/compare'
-import { useTagsByChannel, type Tag } from '@/lib/tags'
+import { tagsQueryOptions, useTagsByChannel, type Tag } from '@/lib/tags'
 
 export const Route = createFileRoute('/_authed/_app/channels/')({ component: ChannelsPage })
 
 const NO_TAGS: Tag[] = []
 
 function ChannelsPage() {
-  const { data, error, isPending, refetch, isRefetching } = useQuery(channelsQueryOptions)
+  const search = Route.useSearch()
+  const navigate = Route.useNavigate()
+  const channelsQuery = useQuery(channelsQueryOptions)
+  const tagsQuery = useQuery(tagsQueryOptions)
   const tagsByChannel = useTagsByChannel()
-  const channels = useMemo(() => data?.toSorted((a, b) => compareText(a.title, b.title)), [data])
+  const sort = search.sort ?? 'az'
+  const tags = tagsQuery.data?.tags ?? NO_TAGS
+  const requested = parseTagFilter(search.tags)
+  const waitingForTags = requested.length > 0 && !tagsQuery.data
 
-  if (isPending) return <ChannelListSkeleton />
+  const selected = useMemo(() => {
+    const known = new Set(tags.map((tag) => tag.id))
+    return parseTagFilter(search.tags).filter((id) => id === UNTAGGED || known.has(id))
+  }, [search.tags, tags])
 
-  if (error) {
-    return isReauthError(error) ? (
-      <Message text="Your YouTube access has expired. Sign in again to load your channels.">
-        <Button onClick={() => signInWithGoogle()}>Sign in again</Button>
-      </Message>
-    ) : (
-      <Message text="Couldn't load your channels.">
-        <Button variant="secondary" onClick={() => refetch()} disabled={isRefetching}>
-          Try again
-        </Button>
-      </Message>
+  const channels = useMemo(() => {
+    if (!channelsQuery.data) return undefined
+    const filter = new Set(selected)
+    const direction = sort === 'za' ? -1 : 1
+    return channelsQuery.data
+      .filter((channel) =>
+        matchesTagFilter(
+          (tagsByChannel?.get(channel.channelId) ?? NO_TAGS).map((tag) => tag.id),
+          filter,
+        ),
+      )
+      .toSorted((a, b) => direction * compareText(a.title, b.title))
+  }, [channelsQuery.data, tagsByChannel, selected, sort])
+
+  function clearFilters() {
+    void navigate({ search: (prev) => ({ ...prev, tags: undefined }), replace: true })
+  }
+
+  function content() {
+    if (channelsQuery.error) {
+      return isReauthError(channelsQuery.error) ? (
+        <Message text="Your YouTube access has expired. Sign in again to load your channels.">
+          <Button onClick={() => signInWithGoogle()}>Sign in again</Button>
+        </Message>
+      ) : (
+        <Message text="Couldn't load your channels.">
+          <Button
+            variant="secondary"
+            onClick={() => channelsQuery.refetch()}
+            disabled={channelsQuery.isRefetching}
+          >
+            Try again
+          </Button>
+        </Message>
+      )
+    }
+    if (waitingForTags && tagsQuery.error) {
+      return (
+        <Message text="Couldn't load your tags.">
+          <Button
+            variant="secondary"
+            onClick={() => tagsQuery.refetch()}
+            disabled={tagsQuery.isRefetching}
+          >
+            Try again
+          </Button>
+        </Message>
+      )
+    }
+    if (!channels || waitingForTags) return <ChannelListSkeleton />
+    if (channelsQuery.data?.length === 0) {
+      return <Message text="You're not subscribed to any channels on YouTube yet." />
+    }
+    if (channels.length === 0) {
+      return (
+        <Message text="No channels match these tags.">
+          <Button variant="secondary" onClick={clearFilters}>
+            Clear filters
+          </Button>
+        </Message>
+      )
+    }
+    return (
+      <ul className="pb-2">
+        {channels.map((channel) => (
+          <ChannelRow
+            key={channel.channelId}
+            channel={channel}
+            tags={tagsByChannel?.get(channel.channelId) ?? NO_TAGS}
+          />
+        ))}
+      </ul>
     )
   }
 
-  if (!channels?.length) {
-    return <Message text="You're not subscribed to any channels on YouTube yet." />
-  }
-
   return (
-    <ul className="py-2">
-      {channels.map((channel) => (
-        <ChannelRow
-          key={channel.channelId}
-          channel={channel}
-          tags={tagsByChannel?.get(channel.channelId) ?? NO_TAGS}
-        />
-      ))}
-    </ul>
+    <>
+      <FilterRow tags={tags} selected={selected} sort={sort} />
+      {content()}
+    </>
   )
 }
 
@@ -73,17 +136,7 @@ function ChannelRow({ channel, tags }: { channel: Channel; tags: Tag[] }) {
         <div className="min-w-0 flex-1">
           <p className="truncate font-medium">{channel.title}</p>
           {tags.length > 0 ? (
-            <div className="mt-1 flex gap-1 overflow-hidden">
-              {tags.map((tag) => (
-                <TagChip
-                  key={tag.id}
-                  name={tag.name}
-                  color={tag.color}
-                  size="sm"
-                  className="shrink-0"
-                />
-              ))}
-            </div>
+            <TagChipList tags={tags} className="mt-1" />
           ) : (
             channel.handle && (
               <p className="truncate text-sm text-muted-foreground">{channel.handle}</p>
@@ -106,7 +159,7 @@ function ChannelRow({ channel, tags }: { channel: Channel; tags: Tag[] }) {
 
 function ChannelListSkeleton() {
   return (
-    <ul className="py-2" aria-busy="true" aria-label="Loading channels">
+    <ul className="pb-2" aria-busy="true" aria-label="Loading channels">
       {Array.from({ length: 10 }, (_, index) => (
         <li key={index} className="flex items-center gap-3 px-4 py-2">
           <Skeleton className="size-10 rounded-full" />
